@@ -20,6 +20,11 @@ public abstract class ElementalOrb : NetworkBehaviour
             DespawnOrb();
         }
     }
+
+    protected void setElement(ElementType newElement)
+    {
+        element = newElement;
+    }
     
     private void DespawnOrb()
     {
