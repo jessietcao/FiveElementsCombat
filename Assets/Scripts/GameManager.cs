@@ -8,13 +8,21 @@ public class GameManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        // Singleton pattern
+        if (Instance != null && Instance != this) 
         {
             Destroy(gameObject);
         }
-        else
+        else 
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // Optional for GameManager
+        }
+
+        // Ensure only one NetworkManager exists
+        if (FindObjectOfType<NetworkManager>() != NetworkManager.Singleton)
+        {
+            Destroy(FindObjectOfType<NetworkManager>().gameObject);
         }
     }
 
