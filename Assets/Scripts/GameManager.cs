@@ -1,10 +1,12 @@
+using System.Collections.Generic; // Add this line
 using Unity.Netcode;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
     public GameObject playerPrefab; // Assign in Inspector
+    [SerializeField] private string gameplayScene = "BattleField"; // Set this to your gameplay scene name
 
     private void Awake()
     {
@@ -16,22 +18,28 @@ public class GameManager : NetworkBehaviour
         else 
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Optional for GameManager
+            DontDestroyOnLoad(gameObject); 
         }
 
-        // Ensure only one NetworkManager exists
-        if (FindObjectOfType<NetworkManager>() != NetworkManager.Singleton)
-        {
-            Destroy(FindObjectOfType<NetworkManager>().gameObject);
-        }
     }
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
+        if (IsServer && NetworkManager.Singleton.SceneManager != null)
         {
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-            SpawnPlayers(); // Spawn existing players
+         //   NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
+        }
+    }
+
+ 
+    private void OnSceneLoaded(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+       Debug.Log($"OnSceneLoaded called: {sceneName}, Mode: {loadSceneMode}");
+        if (sceneName == gameplayScene && IsServer)
+        {
+            
+            SpawnPlayers();
         }
     }
 
@@ -45,13 +53,13 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private void OnClientConnected(ulong clientId)
-    {
-        if (IsServer)
-        {
-            SpawnPlayer(clientId);
-        }
-    }
+    // private void OnClientConnected(ulong clientId)
+    // {
+    //     // if (IsServer && SceneManager.GetActiveScene().name == gameplayScene)
+    //     // {
+    //     //     SpawnPlayer(clientId);
+    //     // }
+    // }
 
     private void SpawnPlayer(ulong clientId)
     {
@@ -64,7 +72,9 @@ public class GameManager : NetworkBehaviour
     {
         if (IsServer && NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+           // NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            if (NetworkManager.Singleton.SceneManager != null)
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
         }
         base.OnDestroy();
     }

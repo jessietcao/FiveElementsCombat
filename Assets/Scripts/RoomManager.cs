@@ -10,7 +10,11 @@ public class RoomManager : NetworkBehaviour
     [SerializeField] private TMP_InputField codeInputField;
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject lobbyPanel;
-    [SerializeField] private string gameplayScene = "Battlefield";
+    public GameObject MenuPanel => menuPanel;
+    public GameObject LobbyPanel => lobbyPanel;
+
+    [SerializeField] private TMP_Text CodeText;
+    [SerializeField] private string gameplayScene = "BattleField";
     
     private string roomCode = "";
     private bool isHost = false;
@@ -20,18 +24,30 @@ public class RoomManager : NetworkBehaviour
         else Instance = this;
     }
 
-    // Called by Host button
-    public void CreateRoom() {
+    public void CreateRoom()
+    {
         roomCode = GenerateRandomCode();
         isHost = true;
         
+        // Add this to ensure we don't load scene until ready
+        NetworkManager.Singleton.OnServerStarted += OnHostStarted;
         NetworkManager.Singleton.StartHost();
-        NetworkManager.Singleton.SceneManager.LoadScene(gameplayScene, LoadSceneMode.Single);
-        
-        ShowLobbyUI();
-        Debug.Log($"Room created! Code: {roomCode}");
     }
 
+    private void OnHostStarted()
+    {
+        NetworkManager.Singleton.OnServerStarted -= OnHostStarted;
+        ShowLobbyUI(); // Show lobby before game starts
+    }
+
+    public void StartGame()
+    {
+        if (!IsHost) return;
+        
+        // Hide UI before transition
+        if (lobbyPanel != null) lobbyPanel.SetActive(false);
+        NetworkManager.Singleton.SceneManager.LoadScene(gameplayScene, LoadSceneMode.Single);
+    }
     // Called by Join button
     public void JoinRoom() {
         roomCode = codeInputField.text;
@@ -41,11 +57,6 @@ public class RoomManager : NetworkBehaviour
         ShowLobbyUI();
     }
 
-    // Called by Start button (host only)
-    public void StartGame() {
-        if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene(gameplayScene, LoadSceneMode.Single);
-    }
 
     private string GenerateRandomCode() {
         return Random.Range(1000, 9999).ToString();
@@ -57,7 +68,7 @@ public class RoomManager : NetworkBehaviour
         
         if (IsHost) {
             // Show code to host
-            lobbyPanel.GetComponentInChildren<TMP_Text>().text = $"Room Code: {roomCode}";
+            CodeText.text = $"Room Code: {roomCode}";
         }
     }
 }
