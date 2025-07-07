@@ -33,15 +33,15 @@ public class GameManager : NetworkBehaviour
     }
 
  
-    private void OnSceneLoaded(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
-    {
-       Debug.Log($"OnSceneLoaded called: {sceneName}, Mode: {loadSceneMode}");
-        if (sceneName == gameplayScene && IsServer)
-        {
+    private void OnSceneLoaded(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut) {
+    if (sceneName == gameplayScene && IsServer) {
+        // Clean up lobby UI when game starts
+        if (RoomManager.Instance != null)
+            Destroy(RoomManager.Instance.gameObject);
             
-            SpawnPlayers();
-        }
+        SpawnPlayers(); // Spawn all connected players
     }
+}
 
     private void SpawnPlayers()
     {
@@ -61,11 +61,10 @@ public class GameManager : NetworkBehaviour
     //     // }
     // }
 
-    private void SpawnPlayer(ulong clientId)
-    {
+    private void SpawnPlayer(ulong clientId) {
         Vector3 spawnPos = new Vector3(Random.Range(-5, 5), 0, Random.Range(-5, 5));
         GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId); // Network spawn
     }
 
     public override void OnDestroy()
