@@ -1,4 +1,5 @@
 # FiveElementsCultivationSimulator
 
 
-![master cultivator banner](https://github.com/user-attachments/assets/0744936d-a7b4-40f2-9ed1-07c6fc76ce8c)
+
+![master cultivator banner1](https://github.com/user-attachments/assets/3a212754-a4a9-459f-a8de-fc8cb109068e)
